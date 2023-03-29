@@ -73,7 +73,7 @@ class Tracker:
                 distance = (x_f - x_ini, y_f - y_ini)
                 if np.linalg.norm(distance) > 100:
                     if recta1.is_above((x_ini, y_ini)):  # estoy en la zona 1 (por encima de la recta 1)
-                        if recta2.is_above((x_f, y_f)):
+                        if not recta2.is_above((x_f, y_f)):
                             #tr_12 += 1
                             res_matrix[0][1] += 1
                         elif recta3.is_above((x_f, y_f)):
@@ -86,7 +86,7 @@ class Tracker:
                             #tr_11 += 1
                             res_matrix[0][0] += 1
 
-                    elif recta2.is_above((x_ini, y_ini)):  # es decir, por debajo de la recta 2
+                    elif not recta2.is_above((x_ini, y_ini)):  # es decir, por debajo de la recta 2
                         if recta1.is_above((x_f, y_f)):
                             #tr_21 += 1
                             res_matrix[1][0] += 1
@@ -101,7 +101,7 @@ class Tracker:
                         if recta1.is_above((x_f, y_f)):
                             #tr_31 += 1
                             res_matrix[2][0] += 1
-                        elif recta2.is_above((x_f, y_f)):
+                        elif not recta2.is_above((x_f, y_f)):
                             #tr_32 += 1
                             res_matrix[2][1] += 1
                         elif not recta4.is_above((x_f, y_f)):
@@ -113,7 +113,7 @@ class Tracker:
                         if recta1.is_above((x_f, y_f)):
                             #tr_41 += 1
                             res_matrix[3][0] += 1
-                        elif recta2.is_above((x_f, y_f)):
+                        elif not recta2.is_above((x_f, y_f)):
                             #tr_42 += 1
                             res_matrix[3][1] += 1
                         elif recta3.is_above((x_f, y_f)):
