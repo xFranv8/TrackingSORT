@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 
 
@@ -36,3 +37,12 @@ class Straight:
     def __to_homogeneous(self, pt1: list) -> list:
         pt1.append(1)
         return pt1
+
+    def paint(self, image: np.ndarray, color: tuple = (0, 255, 0), thickness: int = 2) -> None:
+        x1 = 0
+        y1 = int(self.__m * x1 + self.__n)
+        x2 = image.shape[1]
+        y2 = int(self.__m * x2 + self.__n)
+
+        cv2.line(image, (x1, y1), (x2, y2), color, thickness)
+

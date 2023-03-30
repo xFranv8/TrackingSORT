@@ -2,6 +2,7 @@ import cv2
 from Detector import Detector
 import norfair
 import numpy as np
+import random
 from Straight import Straight
 import torch
 from typing import List
@@ -15,9 +16,8 @@ class Tracker:
         for i in range(200):
             self.__tracking[i] = []
 
-        self.__detector = Detector("yolov5s", "cpu")
+        self.__detector = Detector("yolov5s", "cuda:0")
         self.__tracker = norfair.Tracker(distance_function="euclidean", distance_threshold=100)
-
 
     def get_tracking(self):
         return self.__tracking
@@ -54,12 +54,21 @@ class Tracker:
                 cv2.imshow("", frame)
                 if cv2.waitKey(1) == ord('q'):
                     break
-"""
+    """
 
     def track(self, video_path: str, show: bool = False, save: bool = True) -> dict:
-        video = norfair.Video(input_path=video_path)
+        video = norfair.Video(input_path=video_path, output_path="outputs/"+video_path.split("/")[-1])
 
+        colors: list = []
+        for i in range(len(self.__straights)):
+            colors.append((random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
+
+        last_frame = None
         for frame in video:
+            last_frame = frame
+            for i in range(len(self.__straights)):
+                self.__straights[i].paint(frame, color=colors[i], thickness=2)
+
             yolo_detections = self.__detector(
                 frame,
                 conf_threshold=0.25,
@@ -69,6 +78,23 @@ class Tracker:
                 # Filtrar por clases, solo queremos detectar vehiculos
             )
 
+            for index, row in yolo_detections.pandas().xyxy[0].iterrows():
+                label: str = str(row["class"])
+                x1: int = int(row["xmin"])
+                y1: int = int(row["ymin"])
+                """Write label in the frame"""
+
+                if label == "2":
+                    label = "Car"
+                elif label == "3":
+                    label = "Moto"
+                elif label == "5":
+                    label = "Bus"
+                elif label == "7":
+                    label = "Truck"
+
+                cv2.putText(frame, label, (x1 + 25, y1 + 25), cv2.QT_FONT_NORMAL, 0.7, (170, 220, 12), 1)
+
             detections = self.__yolo_detections_to_norfair_detections(
                 yolo_detections, track_points="centroid"
             )
@@ -76,7 +102,6 @@ class Tracker:
             tracked_objects = self.__tracker.update(detections=detections)
             norfair.draw_points(frame, detections)
             norfair.draw_tracked_objects(frame, tracked_objects)
-
 
             if len(tracked_objects) > 0:
                 for tracked_object in tracked_objects:
@@ -91,8 +116,13 @@ class Tracker:
                 if cv2.waitKey(1) == ord('q'):
                     break
 
-        trck = self.get_tracking()
-        return trck
+        if last_frame is not None:
+            for i in range(len(self.__straights)):
+                self.__straights[i].paint(last_frame, color=colors[i], thickness=2)
+            cv2.imwrite("inputs/trayectorias.png", last_frame)
+
+        track: dict[int, list] = self.get_tracking()
+        return track
 
     def get_tracking_info(self) -> np.ndarray:
         recta1: Straight = self.__straights[0]

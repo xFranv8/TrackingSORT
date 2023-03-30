@@ -1,7 +1,5 @@
-import os
-
 import cv2
-import numpy as np
+import os
 
 
 def video_from_frames(path: str, out_path: str) -> None:
@@ -73,7 +71,7 @@ def main():
     p4_1 = [738, 719]
     p4_2 = [957, 398]
 
-    image = cv2.imread("stmarc_frames/00000001.jpg")
+    image = cv2.imread("images_stmarc/00000001.jpg")
     cv2.line(image, p1_1, p1_2, (255, 0, 0), 3)
     cv2.line(image, p2_1, p2_2, (255, 0, 255), 3)
     cv2.line(image, p3_1, p3_2, (255, 255, 0), 3)
@@ -83,7 +81,7 @@ def main():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-    video_from_frames("./stmarc_frames/", "video_stm")
+    #video_from_frames("./images_stmarc/", "video_stm")
 
 
 if __name__ == '__main__':
