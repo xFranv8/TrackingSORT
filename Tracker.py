@@ -15,10 +15,14 @@ class Tracker:
         for i in range(200):
             self.__tracking[i] = []
 
-        self.__detector = Detector("yolov5s", "cuda:0")
+        self.__detector = Detector("yolov5s", "cpu")
         self.__tracker = norfair.Tracker(distance_function="euclidean", distance_threshold=100)
 
-    def track(self, video_path: str, show: bool = False, save: bool = True) -> None:
+
+    def get_tracking(self):
+        return self.__tracking
+
+    """def track(self, video_path: str, show: bool = False, save: bool = True) -> None:
         video = norfair.Video(input_path=video_path)
 
         for frame in video:
@@ -50,6 +54,45 @@ class Tracker:
                 cv2.imshow("", frame)
                 if cv2.waitKey(1) == ord('q'):
                     break
+"""
+
+    def track(self, video_path: str, show: bool = False, save: bool = True) -> dict:
+        video = norfair.Video(input_path=video_path)
+
+        for frame in video:
+            yolo_detections = self.__detector(
+                frame,
+                conf_threshold=0.25,
+                iou_threshold=0.45,
+                image_size=800,
+                classes=[2, 3, 5, 7]
+                # Filtrar por clases, solo queremos detectar vehiculos
+            )
+
+            detections = self.__yolo_detections_to_norfair_detections(
+                yolo_detections, track_points="centroid"
+            )
+
+            tracked_objects = self.__tracker.update(detections=detections)
+            norfair.draw_points(frame, detections)
+            norfair.draw_tracked_objects(frame, tracked_objects)
+
+
+            if len(tracked_objects) > 0:
+                for tracked_object in tracked_objects:
+                    centroid: np.ndarray = tracked_object.estimate
+                    id: int = tracked_object.global_id
+
+                    self.__tracking[id].append(centroid)
+            if save:
+                video.write(frame)
+            if show:
+                cv2.imshow("", frame)
+                if cv2.waitKey(1) == ord('q'):
+                    break
+
+        trck = self.get_tracking()
+        return trck
 
     def get_tracking_info(self) -> np.ndarray:
         recta1: Straight = self.__straights[0]

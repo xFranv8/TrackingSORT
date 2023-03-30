@@ -62,6 +62,7 @@ st4 = Straight(p4_1, p4_2)
 
 list_st = [st1, st2, st3, st4]
 
+
 myTracker = Tracker(list_st)
 
 # create video
